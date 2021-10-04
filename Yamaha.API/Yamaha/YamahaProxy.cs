@@ -40,6 +40,11 @@ namespace Yamaha.API.Yamaha
             return new BasicInfo(xmlDocument);
         }
 
+        public async Task GetSystemConfig()
+        {
+            var xmlString = await SendRequest($"<YAMAHA_AV cmd=\"GET\"><System><Config>GetParam</Config></System></YAMAHA_AV>");
+        }
+
         //public async Task<HeadphoneStatus> GetHeadphoneConnectedStatus()
         //{
 
