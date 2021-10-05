@@ -15,11 +15,10 @@ namespace Yamaha.API.Discovery
 
         public async Task<List<SsdpDevice>> FindAvailableReceivers()
         {
-            var availableDevices = new List<SsdpDevice>();
+            var availableDevices = new List<SsdpDevice>();    
             using (var deviceLocator = new SsdpDeviceLocator())
             {
                 var foundDevices = await deviceLocator.SearchAsync("urn:schemas-upnp-org:device:MediaRenderer:1");
-                //var foundDevices = await deviceLocator.SearchAsync();
 
                 foreach (var foundDevice in foundDevices)
                 {

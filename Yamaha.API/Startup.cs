@@ -28,13 +28,16 @@ namespace Yamaha.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //var avalableDevices = new YamahaRecevierDiscovery().FindAvailableReceivers().GetAwaiter().GetResult();
-            //var selectedDevice = avalableDevices.First();
+            var yamahaUrl = Configuration.GetValue<string>("YamahaReceiverUrl");
+            if (string.IsNullOrWhiteSpace(yamahaUrl))
+            {
+                var avalableDevices = new YamahaRecevierDiscovery().FindAvailableReceivers().GetAwaiter().GetResult();
+                yamahaUrl = avalableDevices.First().PresentationUrl.AbsoluteUri;
+            }
 
             services.AddHttpClient<YamahaProxy>(client =>
             {
-                //client.BaseAddress = new Uri(selectedDevice.PresentationUrl.AbsoluteUri);
-                client.BaseAddress = new Uri("http://10.0.0.14");
+                client.BaseAddress = new Uri(yamahaUrl);
             });
 
             services.AddControllers();
@@ -47,12 +50,12 @@ namespace Yamaha.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
+            //if (env.IsDevelopment())
+            //{
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Yamaha.API v1"));
-            }
+            //}
 
             //app.UseHttpsRedirection();
 

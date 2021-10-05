@@ -1,0 +1,11 @@
+version: "3.6"
+services:
+  yamaha-http:
+    container_name: yamaha-http
+    build: .
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - YamahaReceiverUrl=
+    ports:
+      - 7000:7000
