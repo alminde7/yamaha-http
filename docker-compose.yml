@@ -7,5 +7,5 @@ services:
     restart: unless-stopped
     environment:
       - YamahaReceiverUrl=
-    ports:
-      - 7000:7000
+#    ports:
+#      - 7000:7000
