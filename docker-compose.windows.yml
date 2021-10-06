@@ -3,7 +3,8 @@ services:
   yamaha-http:
     container_name: yamaha-http
     build: .
-    network_mode: host
     restart: unless-stopped
     environment:
-      - YamahaReceiverUrl=
+      - YamahaReceiverUrl=http://10.0.0.14
+    ports:
+      - 7000:7000
