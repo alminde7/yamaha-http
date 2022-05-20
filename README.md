@@ -19,7 +19,8 @@ Example XML output Basic Info from Yamaha Receiver
                     <Unit>dB</Unit>
                 </Lvl>
                 <Mute>Off</Mute>
-            </Volume><Input>
+            </Volume>
+            <Input>
             <Input_Sel>AUDIO1</Input_Sel>
             <Input_Sel_Item_Info>
                 <Param>AUDIO1</Param>

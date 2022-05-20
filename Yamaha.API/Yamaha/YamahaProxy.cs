@@ -1,13 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
-using System.Xml.Serialization;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Yamaha.API.Yamaha
 {
@@ -32,19 +30,22 @@ namespace Yamaha.API.Yamaha
             _logger = logger;
         }
 
-        public async Task<BasicInfo> GetBasicInfo(string zone)
+        public async Task<ReceiverStatus> GetBasicInfo(string zone)
         {
             var xmlString = await SendRequest($"<YAMAHA_AV cmd=\"GET\"><{zone}><Basic_Status>GetParam</Basic_Status></{zone}></YAMAHA_AV>");
             var xmlDocument = new XmlDocument();
             xmlDocument.LoadXml(xmlString);
-            return new BasicInfo(xmlDocument);
+            return new ReceiverStatus(xmlDocument);
         }
 
-        public async Task GetSystemConfig()
+        public async Task<ReceiverInformation> GetSystemConfig()
         {
             var xmlString = await SendRequest($"<YAMAHA_AV cmd=\"GET\"><System><Config>GetParam</Config></System></YAMAHA_AV>");
+            var xmlDocument = new XmlDocument();
+            xmlDocument.LoadXml(xmlString);
+            return new ReceiverInformation(xmlDocument);
         }
-
+        
         //public async Task<HeadphoneStatus> GetHeadphoneConnectedStatus()
         //{
 
@@ -369,7 +370,12 @@ namespace Yamaha.API.Yamaha
 
         public static string GetCurrentInput(XmlDocument xml)
         {
-            return xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/Main_Zone/Basic_Status/Input_Sel").InnerText;
+            return xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/Main_Zone/Basic_Status/Input/Input_Sel").InnerText;
+        }
+
+        public static string GetCurrentInputTitle(XmlDocument xml)
+        {
+            return xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/Main_Zone/Basic_Status/Input/Input_Sel_Item_Info/Title").InnerText;
         }
 
         public static bool IsPartyModeEnabled(XmlDocument xml)
@@ -383,27 +389,112 @@ namespace Yamaha.API.Yamaha
             var isOnAsString = xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/Main_Zone/Basic_Status/Sound_Video/Direct/Mode").InnerText;
             return isOnAsString == "On";
         }
-
-
     }
 
-    public class BasicInfo
+    public class ReceiverStatus
     {
-        public BasicInfo()
+        public ReceiverStatus()
         {
 
         }
 
-        public BasicInfo(XmlDocument xml)
+        public ReceiverStatus(XmlDocument xml)
         {
             IsOn = BasicInfoParser.IsOn(xml);
             IsMuted = BasicInfoParser.IsMuted(xml);
             Volume = BasicInfoParser.GetVolume(xml);
+            InputStatus = new InputStatus(xml);
         }
 
         public bool IsOn { get; init; }
         public bool IsMuted { get; init; }
         public int Volume { get; init; }
-
+        public InputStatus InputStatus { get; init; }
     }
+
+    public class InputStatus
+    {
+        public InputStatus(XmlDocument xml)
+        {
+            SelectedInput = BasicInfoParser.GetCurrentInput(xml);
+            Title = BasicInfoParser.GetCurrentInputTitle(xml);
+        }
+
+        public string SelectedInput { get; }
+        public string Title { get; }
+    }
+
+    public class ReceiverInformation
+    {
+        public ReceiverInformation(XmlDocument xml)
+        {
+            Model = ConfigInfoParser.GetModelName(xml);
+            SystemId = ConfigInfoParser.GetSystemId(xml);
+            Version = ConfigInfoParser.GetVersion(xml);
+            Features = ConfigInfoParser.GetAvailableFeatures(xml);
+            Inputs = ConfigInfoParser.GetAvailableInputs(xml);
+        }
+
+        public string Model { get; }
+        public string SystemId { get; }
+        public string Version { get; }
+        public dynamic Inputs { get; }
+        public dynamic Features { get; }
+    }
+
+    public static class ConfigInfoParser
+    {
+        public static dynamic GetAvailableInputs(XmlDocument xml)
+        {
+            var inputEnumerator = xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/System/Config/Name/Input").ChildNodes.GetEnumerator();
+
+            var list = new List<dynamic>();
+
+            while (inputEnumerator.MoveNext())
+            {
+                var input = inputEnumerator.Current as XmlNode;
+                if (input == null)
+                    continue;
+
+                list.Add(new { key = input.Name.Replace("_", ""), value = input.InnerText.Trim() });
+            }
+
+            return list;
+        }
+
+        public static dynamic GetAvailableFeatures(XmlDocument xml)
+        {
+            var inputEnumerator = xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/System/Config/Feature_Existence").ChildNodes.GetEnumerator();
+
+            var list = new List<dynamic>();
+
+            while (inputEnumerator.MoveNext())
+            {
+                var input = inputEnumerator.Current as XmlNode;
+                if (input == null)
+                    continue;
+
+                list.Add(new { key = input.Name, value = input.InnerText == "1" });
+            }
+
+            return list;
+        }
+
+        public static string GetModelName(XmlDocument xml)
+        {
+            return xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/System/Config/Model_Name").InnerText;
+        }
+
+        public static string GetSystemId(XmlDocument xml)
+        {
+            return xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/System/Config/System_ID").InnerText;
+        }
+
+        public static string GetVersion(XmlDocument xml)
+        {
+            return xml.DocumentElement.SelectSingleNode("/YAMAHA_AV/System/Config/Version").InnerText;
+        }
+    }
+
+
 }

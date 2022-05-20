@@ -23,13 +23,13 @@ namespace Yamaha.API.Controllers
         }
 
         [HttpGet]
-        public Task<BasicInfo> GetBasicInfo([FromQuery]string zone = "Main_Zone")
+        public Task<ReceiverStatus> GetBasicInfo([FromQuery]string zone = "Main_Zone")
         {
             return _yamahaProxy.GetBasicInfo(zone);
         }
 
         [HttpGet("config")]
-        public Task GetConfig()
+        public Task<ReceiverInformation> GetConfig()
         {
             return _yamahaProxy.GetSystemConfig();
         }
@@ -46,6 +46,12 @@ namespace Yamaha.API.Controllers
             return _yamahaProxy.PowerOff(zone);
         }
 
+        /// <summary>
+        /// Set volume to specified level
+        /// </summary>
+        /// <param name="level">Between -800 and 165</param>
+        /// <param name="zone"></param>
+        /// <returns></returns>
         [HttpPost("volume/{level}")]
         public Task SetVolume([FromRoute]int level, [FromQuery] string zone = "Main_Zone")
         {

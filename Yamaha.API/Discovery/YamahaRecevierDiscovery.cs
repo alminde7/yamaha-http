@@ -19,6 +19,7 @@ namespace Yamaha.API.Discovery
             using (var deviceLocator = new SsdpDeviceLocator())
             {
                 var foundDevices = await deviceLocator.SearchAsync("urn:schemas-upnp-org:device:MediaRenderer:1");
+                //var foundDevices1 = await deviceLocator.SearchAsync();
 
                 foreach (var foundDevice in foundDevices)
                 {
